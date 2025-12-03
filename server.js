@@ -5,40 +5,33 @@ const cors = require("cors");
 
 const app = express();
 
-// Allow your frontend (Vercel) to call backend
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// ------------------------------------------------------------
-// CLOUD MYSQL CONNECTION (PlanetScale / Railway)
-// ------------------------------------------------------------
-const db = mysql.createConnection({
-    host: process.env.DB_HOST, 
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME
-});
+// =============================
+// 📌 Database connection (Railway)
+// =============================
+const db = mysql.createConnection(process.env.DB_URL);
 
-// Connect to database
 db.connect(err => {
     if (err) {
         console.error("Database connection failed:", err);
         return;
     }
-    console.log("Connected to cloud MySQL database");
+    console.log("MySQL Connected");
 });
 
-// ------------------------------------------------------------
-// DEFAULT ROUTE FOR TESTING (IMPORTANT FOR RENDER)
-// ------------------------------------------------------------
+// =============================
+// 📌 Test Route
+// =============================
 app.get("/", (req, res) => {
     res.send("Instanil API is running!");
 });
 
-// ------------------------------------------------------------
-// LOGIN API (STORE USERNAME + PASSWORD)
-// ------------------------------------------------------------
+// =============================
+// 📌 Login Route (Store username + password)
+// =============================
 app.post("/login", (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
@@ -50,17 +43,16 @@ app.post("/login", (req, res) => {
     const sql = "INSERT INTO users (username, password) VALUES (?, ?)";
     db.query(sql, [username, password], (err, result) => {
         if (err) {
-            console.error("DB Insert Error:", err);
+            console.error("Insert Error:", err);
             return res.status(500).send("Database error");
         }
-
         res.send("User login saved successfully!");
     });
 });
 
-// ------------------------------------------------------------
-// START SERVER (Render will use this PORT automatically)
-// ------------------------------------------------------------
+// =============================
+// 📌 Start Server (Render assigns PORT)
+// =============================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running at port ${PORT}`);
